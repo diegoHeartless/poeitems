@@ -4,7 +4,9 @@ import './MediaWikiSitewide.css'
 import Input from "antd/es/input";
 import 'antd/dist/antd.css';
 import './App.css';
+import { UploadOutlined } from '@ant-design/icons';
 import Button from "antd/es/button";
+import Upload from "antd/es/upload";
 
 function App() {
     const [result, setResult] = useState("");
@@ -16,6 +18,7 @@ function App() {
         setResult({...result, [e.target.getAttribute('propname')]: e.target.value});
     }
     const [paramlist, setParamlist] = useState(1);
+    const [imgfile, setImgfile] = useState(undefined);
     const [descline, setDescline] = useState(1);
     const [magicparamlist, setMagicparamlist] = useState(1);
     const addParam = () => {
@@ -140,7 +143,21 @@ function App() {
         return res
     };
    // const [paramlist, setParamlist] = useState(1);
-
+    const props = {
+        name: 'file',
+      //  action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
+        headers: {
+            authorization: 'authorization-text',
+        },
+        onChange(info) {
+            if (info.file.status !== 'uploading') {
+                console.log(info.file, info.fileList);
+                if (info.fileList[0]?.originFileObj) {
+                    setImgfile(URL.createObjectURL(info.fileList[0].originFileObj))
+                }
+            }
+        },
+    };
 
     return (
         <div className="App">
@@ -173,9 +190,9 @@ function App() {
           </span>
                    <span
                        className="images"><a
-                       href="https://static.wikia.nocookie.net/pathofexile_gamepedia/images/0/0d/Iron_Heart_inventory_icon.png/revision/latest?cb=20171208234941"
+
                        className="image"><img alt="Iron Heart inventory icon.png"
-                                              src="https://static.wikia.nocookie.net/pathofexile_gamepedia/images/0/0d/Iron_Heart_inventory_icon.png/revision/latest/scale-to-width-down/156?cb=20171208234941"
+                                              src={imgfile}
                                               decoding="async" width="156" height="234"
                                               data-image-name="Iron Heart inventory icon.png"
                                               data-image-key="Iron_Heart_inventory_icon.png"/>
@@ -197,7 +214,9 @@ function App() {
                     <Button onClick={addDesc}>Add description line</Button>
                     {Descline()}
 
-
+                    <Upload {...props}>
+                        <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                    </Upload>
 
                 </div>
             </div>
