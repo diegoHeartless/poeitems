@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import logo from './logo.svg';
 import './MediaWikiSitewide.css'
 import Input from "antd/es/input";
@@ -7,23 +7,50 @@ import './App.css';
 import { UploadOutlined } from '@ant-design/icons';
 import Button from "antd/es/button";
 import Upload from "antd/es/upload";
+import { saveAsPng, saveAsJpeg } from 'save-html-as-image';
+import Checkbox from "antd/es/checkbox";
+
 
 function App() {
-    const [result, setResult] = useState("");
+    const [result, setResult] = useState({});
     const onChange = (e) => {
         console.log(result)
         console.log(e.target.getAttribute('propname'))
         let temp = {[e.target.getAttribute('propname')]: e.target.value}
         console.log(temp)
         setResult({...result, [e.target.getAttribute('propname')]: e.target.value});
+        console.log(result)
     }
-    const [paramlist, setParamlist] = useState(1);
+    const [paramlist, setParamlist] = useState([]);
+    const [corrupt, setCorrupt] = useState(false);
     const [imgfile, setImgfile] = useState(undefined);
-    const [descline, setDescline] = useState(1);
-    const [magicparamlist, setMagicparamlist] = useState(1);
-    const addParam = () => {
+    const [descline, setDescline] = useState([]);
+    const [magicparamlist, setMagicparamlist] = useState([]);
+ /*   const addParam = () => {
         let paramcount = 1+paramlist;
         setParamlist(paramcount)
+    }*/
+    const addParam = (fun, state, parname) => {
+        console.log(result)
+        var numberPattern = /\d+/g;
+        let currentLastNumber = (state.length-1>=0)?Number(state[state.length-1].match(numberPattern))+1:0;
+        fun(state.concat([parname+currentLastNumber]))
+        console.log(paramlist)
+    }
+    const deleteField = (fun, state, parname) => {
+
+        var arr = state.filter(item => item !== parname)
+
+        console.log('deleteField1 '+parname)
+        fun(arr)
+        console.log('deleteField1 '+state)
+          let delRes = result;
+          console.log('deleteField21 '+result)
+        delete delRes[parname]
+        delete delRes[parname+'value']
+          console.log('deleteField2 '+delRes)
+          setResult(delRes);
+          console.log('deleteField3 '+paramlist)
     }
     const addDesc = () => {
         let paramcount = 1+descline;
@@ -33,112 +60,123 @@ function App() {
         let paramcount = 1+magicparamlist;
         setMagicparamlist(paramcount)
     }
-    const Params = () => {
+
+
+    const Params = (fun, state) => {
         var res=[];
 
-        for (let i = 0; i < paramlist; i++) {
-
+        state.forEach((par) => {
+            console.log('Params  '+par)
             res.push(
                 <div style={{display: 'flex'}}>
 
                     <div style={{width: '40%'}}>
                         <span>Parameter</span>
-                        <Input placeholder="Basic usage" onChange={onChange} propname={'param' + i}/>
+                        <Input placeholder="Basic usage" onChange={onChange} value={result[par]} propname={par }/>
                     </div>
                     <div style={{width: '40%'}}>
                         <span>Parameter value</span>
-                        <Input placeholder="Basic usage" onChange={onChange} propname={'paramvalue' + i}/>
+                        <Input placeholder="Basic usage" onChange={onChange} value={result[par+'value']} propname={par+'value' }/>
                     </div>
-
+                    <Button onClick={()=>deleteField(fun, state, par)}>delete </Button>
                 </div>)
 
-        }
-        console.log(res)
+        })
+
         return res
     };
 
     const MagicParams = () => {
         var res=[];
 
-        for (let i = 0; i < magicparamlist; i++) {
-
+       // for (let i = 0; i < magicparamlist; i++) {
+            magicparamlist.forEach((par) => {
             res.push(
                 <div style={{display: 'flex'}}>
 
                     <div style={{width: '40%'}}>
-                        <span>Parameter value</span>
-                        <Input placeholder="Basic usage" onChange={onChange} propname={'magicparamvalue' + i}/>
+                        <span>Magic Parameter value</span>
+                        <Input placeholder="Basic usage" onChange={onChange}  value={result[par]} propname={par}/>
                     </div>
-
+                    <Button onClick={()=>deleteField(setMagicparamlist, magicparamlist, par)}>delete </Button>
                 </div>)
 
-        }
-        console.log(res)
+        })
+
         return res
     };
 
     const Descline = () => {
         var res=[];
 
-        for (let i = 0; i < descline; i++) {
-
+      //  for (let i = 0; i < descline; i++) {
+            descline.forEach((par) => {
             res.push(
                 <div style={{display: 'flex'}}>
 
                     <div style={{width: '40%'}}>
                         <span>Parameter value</span>
-                        <Input placeholder="Basic usage" onChange={onChange} propname={'desc' + i}/>
+                        <Input placeholder="Basic usage" onChange={onChange}  value={result[par]}  propname={par}/>
                     </div>
-
+                    <Button onClick={()=>deleteField(setDescline, descline, par)}>delete </Button>
                 </div>)
 
-        }
-        console.log(res)
+        })
+
         return res
     };
 
     const ViewParams = () => {
-        var res=[]; console.log('res' +paramlist)
-        for (let i = 0; i < paramlist; i++) {
+        var res=[];
+
+        paramlist.forEach((param) => {
+            res.push(
+                <div>
+                    {result[param]}: <em className="tc -value"><em className="tc -mod">{result[param+'value']}</em></em>
+                </div>
+            )
+        })
+        /*for (let i = 0; i < paramlist; i++) {
             console.log('res2' +paramlist)
             res.push(
                 <div>
                 {result['param'+i]}: <em className="tc -value"><em className="tc -mod">{result['paramvalue'+i]}</em></em>
                 </div>
-        )
+        )*/
 
-        }
+
         console.log(res)
         return res
     };
 
     const ViewMagicParams = () => {
-        var res=[]; console.log('res' +magicparamlist)
-        for (let i = 0; i < magicparamlist; i++) {
+        var res=[];
+
+      //  for (let i = 0; i < magicparamlist; i++) {
+            magicparamlist.forEach((par) => {
             console.log('res2' +magicparamlist)
             res.push(
                 <div>
-                    <em className="tc -value"><em className="tc -mod">{result['magicparamvalue'+i]}</em></em>
+                    <em className="tc -value"><em className="tc -mod">{result[par]}</em></em>
                 </div>
             )
 
-        }
-        console.log(res)
+        })
+
         return res
     };
 
     const ViewDesc = () => {
         var res=[];
 
-        for (let i = 0; i < descline; i++) {
-            console.log('res2' +descline)
+      //  for (let i = 0; i < descline; i++) {
+            descline.forEach((par) => {
             res.push(
                 <div>
-                  {result['desc'+i]}
+                  {result[par]}
                 </div>
             )
-
-        }
+        })
         console.log(res)
         return res
     };
@@ -159,10 +197,17 @@ function App() {
         },
     };
 
+    const saveimg = () => {
+        let test = document.getElementById('item');
+        console.log(test)
+        saveAsPng(test,  {}, {  pixelRatio : 10})
+        }
+
+
     return (
         <div className="App">
             <div style={{display: 'flex'}}>
-                <div style={{width: '30%'}}>
+                <div id="item" style={{width: '30%'}}>
                <span className="item-box -unique"><span className="header -double">
         <span className="symbol"></span>
                    {result.name}
@@ -177,12 +222,17 @@ function App() {
                   {ViewParams()}
               </span>
               <span
-                  className="group">Requires Level <em className="tc -value"><em className="tc -value">59</em></em>
+                  className="group">Requires Level <em className="tc -value"><em className="tc -value">{result.lvl}</em></em>
                   , <em className="tc -value"><em className="tc -value">160</em></em>
                   Str
               </span>
+                  <span className="group tc -mod">
+              {/*   {ViewMagicParams()}*/}
+                      {corrupt?<em className="tc -corrupted">Corrupted</em>:''}
+              </span>
               <span className="group tc -mod">
                  {ViewMagicParams()}
+                  {corrupt?<em className="tc -corrupted">Corrupted</em>:''}
               </span>
               <span className="group tc -flavour">
                   {ViewDesc()}
@@ -201,23 +251,30 @@ function App() {
                </span>
                 </div>
                 <div style={{width: '65%'}}>
+                    <div style={{width: '65%'}}>
                     <span>Name</span>
                     <Input placeholder="Basic usage" onChange={onChange} propname='name'/>
                     <span>Type</span>
+                        <Checkbox onChange={()=>setCorrupt((bool)=>!bool)}>Checkbox</Checkbox>
                     <Input placeholder="Basic usage" onChange={onChange} propname='type'/>
                     <span>Quality</span>
                     <Input placeholder="Basic usage" onChange={onChange} propname='quality'/>
-                    <Button onClick={addParam}>Add main param</Button>
-                    {Params()}
-                    <Button onClick={addMagicParam}>Add magic param</Button>
+                    <Button onClick={()=>addParam(setParamlist, paramlist,'param')}>Add main param</Button>
+                      {/*  <Button onClick={()=>deleteField(setParamlist, paramlist)}>delete main param</Button>*/}
+                    {Params(setParamlist, paramlist)}
+                        <span>Level</span>
+                        <Input placeholder="Basic usage" onChange={onChange} propname='lvl'/>
+                    <Button onClick={()=>addParam(setMagicparamlist, magicparamlist,'magicparam')}>Add magic param</Button>
                     {MagicParams()}
-                    <Button onClick={addDesc}>Add description line</Button>
+                      {/*  {Params(setMagicparamlist, magicparamlist)}*/}
+                    <Button onClick={()=>addParam(setDescline, descline,'desc')}>Add description line</Button>
                     {Descline()}
 
                     <Upload {...props}>
                         <Button icon={<UploadOutlined />}>Click to Upload</Button>
                     </Upload>
-
+                        <Button onClick={saveimg}>Click to save</Button>
+                    </div>
                 </div>
             </div>
 

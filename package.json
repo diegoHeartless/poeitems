@@ -29,5 +29,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "dom-to-image": "^2.6.0",
+    "save-html-as-image": "^1.7.1"
   }
 }
