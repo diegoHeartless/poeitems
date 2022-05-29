@@ -31,7 +31,9 @@
     ]
   },
   "devDependencies": {
+    "axios": "^0.26.1",
     "dom-to-image": "^2.6.0",
+    "react-router-dom": "^6.3.0",
     "save-html-as-image": "^1.7.1"
   }
 }
